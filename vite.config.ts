@@ -3,17 +3,27 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
+// SPA fallback plugin para gumana ang nested routes sa Vercel
+const spaFallback = () => ({
+  name: 'spa-fallback',
+  configureServer(server) {
+    server.middlewares.use((_, res, next) => {
+      res.setHeader('Cache-Control', 'no-store');
+      next();
+    });
+  }
+});
+
 export default defineConfig(({ mode }) => ({
-  base: "/", // 🔥 This line is the fix!
+  base: "/", // Required for React Router in Vercel
   server: {
     host: "::",
     port: 8080,
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    spaFallback(),
+    mode === 'development' && componentTagger()
   ].filter(Boolean),
   resolve: {
     alias: {
